@@ -865,11 +865,11 @@
         }
 
         async function updateGodownStock(full, empty) {
-            await updateDoc(doc(db, 'users', currentUser.uid, 'settings', 'godown'), {
+            await setDoc(doc(db, 'users', currentUser.uid, 'settings', 'godown'), {
                 full,
                 empty,
                 updatedAt: serverTimestamp()
-            });
+            }, { merge: true });
         }
 
         async function addStockLog(logData) {
