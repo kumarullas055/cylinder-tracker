@@ -1064,7 +1064,6 @@
         // MODAL MANAGEMENT
         // ============================================
         function openModal(id, param) { const modal = document.getElementById(id); modal.classList.remove('hidden'); modal.classList.add('flex'); if (id === 'godownModal') { document.getElementById('godownForm').reset(); document.getElementById('godownDate').value = getTodayStr(); if (param) document.getElementById('godownMovementType').value = param === 'full' ? 'manual_full' : 'manual_empty'; } else if (id === 'driverModal') { resetDriverForm(); } else if (id === 'expenseModal') { document.getElementById('expenseModalForm').reset(); document.getElementById('expenseLogId').value = ''; document.getElementById('expenseModalTitle').textContent = 'Add Expense'; document.getElementById('expenseModalDate').value = getTodayStr(); } }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
         let confirmCallback = null;
         function openConfirmModal(title, message, callback) { document.getElementById('confirmTitle').textContent = title; document.getElementById('confirmMessage').textContent = message; confirmCallback = callback; document.getElementById('confirmModal').classList.remove('hidden'); document.getElementById('confirmModal').classList.add('flex'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); if (id === 'confirmModal') confirmCallback = null; }
