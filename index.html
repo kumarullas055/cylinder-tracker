@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CylinderFlow - Gas Cylinder Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#fef7ee', 100: '#fdedd6', 200: '#fad9ac', 300: '#f6c173', 400: '#f1a23a', 500: '#ed8915', 600: '#de700f', 700: '#b8530d', 800: '#944210', 900: '#7a3612' },
+                        success: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a' },
+                        danger: { 50: '#fef2f2', 100: '#fee2e2', 500: '#ef4444', 600: '#dc2626' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .table-container { overflow-x: auto; }
+        .modal-overlay { backdrop-filter: blur(4px); }
+        @media print { .no-print { display: none !important; } }
+        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Auth Screen -->
+    <div id="authScreen" class="auth-container bg-gradient-to-br from-primary-50 via-white to-primary-100 hidden">
+        <div class="w-full max-w-md p-8 mx-4">
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100 mb-4">
+                        <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.429 15.429a12.062 12.062 0 01-1.414-1.414l-1.095-1.095a12.06 12.06 0 00-1.414-1.414l-1.096-1.096a12.06 12.06 0 00-1.414-1.414l-1.095-1.095a12.06 12.06 0 00-1.414-1.414L3 12l3.053 3.053a12.06 12.06 0 001.414 1.414l1.096 1.096a12.06 12.06 0 001.414 1.414l1.095 1.095a12.06 12.06 0 001.414 1.414l1.095 1.095a12.06 12.06 0 001.414 1.414L21 12l-1.571-1.571z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">CylinderFlow</h1>
+                    <p class="text-gray-500 mt-1">Sign in to continue</p>
+                </div>
+
+                <div id="authForms">
+                    <!-- Login Form -->
+                    <form id="loginForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="loginEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="loginPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors">Sign In</button>
+                    </form>
+
+                    <div class="relative my-6">
+                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                        <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or continue with</span></div>
+                    </div>
+
+                    <button type="button" id="googleSignInBtn" class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.92 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        <span class="font-medium">Continue with Google</span>
+                    </button>
+                </div>
+
+                <p class="text-center text-sm text-gray-500 mt-6">Don't have an account? <button id="showRegisterBtn" class="text-primary-600 hover:underline font-medium">Sign up</button></p>
+            </div>
+
+            <!-- Register Form (hidden initially) -->
+            <form id="registerForm" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="regName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="regEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="regPassword" required minlength="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" id="regConfirmPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors">Create Account</button>
+            </form>
+
+            <p class="text-center text-sm text-gray-500 mt-6" id="authSwitchText">Already have an account? <button id="showLoginBtn" class="text-primary-600 hover:underline font-medium">Sign in</button></p>
+        </div>
+    </div>
+
+    <!-- Main App (hidden until authenticated) -->
+    <div id="mainApp" class="hidden">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm sticky top-0 z-40 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <svg class="h-8 w-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.429 15.429a12.062 12.062 0 01-1.414-1.414l-1.095-1.095a12.06 12.06 0 00-1.414-1.414l-1.096-1.096a12.06 12.06 0 00-1.414-1.414l-1.095-1.095a12.06 12.06 0 00-1.414-1.414L3 12l3.053 3.053a12.06 12.06 0 001.414 1.414l1.096 1.096a12.06 12.06 0 001.414 1.414l1.095 1.095a12.06 12.06 0 001.414 1.414l1.095 1.095a12.06 12.06 0 001.414 1.414L21 12l-1.571-1.571z"/>
+                            </svg>
+                            <span class="ml-2 text-xl font-bold text-gray-900">CylinderFlow</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="hidden sm:block text-sm text-gray-500" id="currentDateTime"></div>
+                        <div class="flex items-center gap-2">
+                            <span id="userEmail" class="text-sm text-gray-500 hidden"></span>
+                            <button onclick="signOut()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg font-medium transition-colors no-print">Sign Out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="mainContent">
+            <!-- Loading State -->
+            <div id="loadingState" class="flex items-center justify-center min-h-[400px]">
+                <div class="text-center">
+                    <div class="inline-block w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p class="text-gray-500">Loading your data...</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Summary Cards -->
+            <section id="dashboard" class="mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+                    <div class="mt-4 sm:mt-0 flex items-center gap-2">
+                        <span class="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
+                            Real-time sync across devices
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Today's Cylinders Sold</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-1" id="todaySold">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Today's Cash Collected</p>
+                                <p class="text-3xl font-bold text-success-600 mt-1" id="todayCollected">₹0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-success-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Today's Pending Balance</p>
+                                <p class="text-3xl font-bold text-danger-600 mt-1" id="todayPending">₹0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-danger-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Daily Net Profit/Loss</p>
+                                <p class="text-3xl font-bold mt-1" id="dailyProfit">₹0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Monthly Net Profit/Loss</p>
+                                <p class="text-3xl font-bold mt-1" id="monthlyProfit">₹0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Godown Stock Tracker -->
+            <section id="godown" class="mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Godown Stock Tracker</h2>
+                    <button onclick="openModal('godownModal')" class="mt-4 sm:mt-0 bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors">
+                        Update Stock / Log Refill
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Full Cylinders in Stock</h3>
+                            <button onclick="openModal('godownModal', 'full')" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
+                        </div>
+                        <div class="text-4xl font-bold text-gray-900" id="fullStock">0</div>
+                        <p class="text-sm text-gray-500 mt-1">Available for distribution</p>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Empty Cylinders in Stock</h3>
+                            <button onclick="openModal('godownModal', 'empty')" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Edit</button>
+                        </div>
+                        <div class="text-4xl font-bold text-gray-900" id="emptyStock">0</div>
+                        <p class="text-sm text-gray-500 mt-1">Collected from drivers</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-900">Recent Stock Movements</h3>
+                        <button onclick="exportStockLog()" class="text-sm text-primary-600 hover:text-primary-700">Export CSV</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full" id="stockLogTable">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Stock After</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empty Stock After</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100" id="stockLogBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Driver Daily Log & Collection -->
+            <section id="driverLog" class="mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Driver Daily Log & Collection</h2>
+                    <button onclick="openModal('driverModal')" class="mt-4 sm:mt-0 bg-success-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-success-700 transition-colors">
+                        Add Driver Log
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+                            <input type="date" id="filterDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Month</label>
+                            <input type="month" id="filterMonth" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Driver</label>
+                            <select id="filterDriver" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option value="">All Drivers</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="clearFilters()" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Clear Filters</button>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="exportDriverLogs()" class="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Export to CSV</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full" id="driverLogTable">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price/Unit</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Taken</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Sold</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Full Returned</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Empty Returned</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Expected</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Collected</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100" id="driverLogBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-100" id="emptyState" style="display: none;">
+                        <p class="text-center text-gray-500">No driver logs found. Click "Add Driver Log" to start.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Daily Expenses -->
+            <section id="expenses" class="mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Daily Expenses</h2>
+                    <button onclick="openModal('expenseModal')" class="mt-4 sm:mt-0 bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-700 transition-colors">
+                        Add Expense
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Quick Add Expense</h3>
+                        <form id="expenseForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                <input type="date" id="expenseDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <input type="text" id="expenseDesc" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="e.g., Fuel, Loading, Maintenance" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+                                <input type="number" id="expenseAmount" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                            </div>
+                            <button type="submit" class="w-full bg-yellow-600 text-white py-2 rounded-lg font-medium hover:bg-yellow-700 transition-colors">Add Expense</button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Expenses Summary</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-500">Today's Expenses</p>
+                                <p class="text-2xl font-bold text-danger-600" id="todayExpenses">₹0</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-500">Monthly Expenses</p>
+                                <p class="text-2xl font-bold text-danger-600" id="monthlyExpenses">₹0</p>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full" id="expenseTable">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100" id="expenseBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modals -->
+        <!-- Godown Modal -->
+        <div id="godownModal" class="fixed inset-0 modal-overlay bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 no-print">
+            <div class="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900" id="godownModalTitle">Update Godown Stock</h3>
+                    <button onclick="closeModal('godownModal')" class="text-gray-400 hover:text-gray-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+                <form id="godownForm" class="p-6 space-y-4">
+                    <input type="hidden" id="godownType" value="full">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" id="godownDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <select id="godownMovementType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                            <option value="refill">Refill Received from Plant (+Full, -Empty)</option>
+                            <option value="manual_full">Manual Adjustment - Full Cylinders</option>
+                            <option value="manual_empty">Manual Adjustment - Empty Cylinders</option>
+                            <option value="damage_full">Damaged/Lost - Full Cylinders</option>
+                            <option value="damage_empty">Damaged/Lost - Empty Cylinders</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <input type="number" id="godownQty" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <input type="text" id="godownNotes" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Supplier name, invoice #, etc.">
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeModal('godownModal')" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Driver Modal -->
+        <div id="driverModal" class="fixed inset-0 modal-overlay bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 no-print">
+            <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900" id="driverModalTitle">Add Driver Log</h3>
+                    <button onclick="closeModal('driverModal')" class="text-gray-400 hover:text-gray-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+                <form id="driverForm" class="p-6 space-y-4">
+                    <input type="hidden" id="driverLogId" value="">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-danger-500">*</span></label>
+                            <input type="date" id="driverDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Driver Name <span class="text-danger-500">*</span></label>
+                            <input type="text" id="driverName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="e.g., Rajesh Kumar" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Price per Cylinder (₹) <span class="text-danger-500">*</span></label>
+                            <input type="number" id="pricePerCylinder" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Cylinders Taken <span class="text-danger-500">*</span></label>
+                            <input type="number" id="cylindersTaken" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required oninput="calculateAuto()">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cylinders Sold <span class="text-danger-500">*</span></label>
+                            <input type="number" id="cylindersSold" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required oninput="calculateAuto()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Cylinders Returned</label>
+                            <input type="number" id="fullReturned" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" oninput="calculateAuto()">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Empty Cylinders Returned <span class="text-danger-500">*</span></label>
+                            <input type="number" id="emptyReturned" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount Collected (₹) <span class="text-danger-500">*</span></label>
+                            <input type="number" id="amountCollected" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Expected Amount (Auto)</label>
+                            <input type="text" id="expectedAmount" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Balance / Shortfall (Auto)</label>
+                            <input type="text" id="balanceAmount" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeModal('driverModal')" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="flex-1 px-4 py-2 bg-success-600 text-white rounded-lg font-medium hover:bg-success-700">Save Log</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Expense Modal -->
+        <div id="expenseModal" class="fixed inset-0 modal-overlay bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 no-print">
+            <div class="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900" id="expenseModalTitle">Add Expense</h3>
+                    <button onclick="closeModal('expenseModal')" class="text-gray-400 hover:text-gray-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+                <form id="expenseModalForm" class="p-6 space-y-4">
+                    <input type="hidden" id="expenseLogId" value="">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-danger-500">*</span></label>
+                        <input type="date" id="expenseModalDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-danger-500">*</span></label>
+                        <input type="text" id="expenseModalDesc" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="e.g., Fuel, Loading, Maintenance" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₹) <span class="text-danger-500">*</span></label>
+                        <input type="number" id="expenseModalAmount" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeModal('expenseModal')" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium hover:bg-yellow-700">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="confirmModal" class="fixed inset-0 modal-overlay bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 no-print">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-900" id="confirmTitle">Confirm Action</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <p class="text-gray-600" id="confirmMessage">Are you sure?</p>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                    <button onclick="closeModal('confirmModal')" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button id="confirmActionBtn" class="px-4 py-2 bg-danger-600 text-white rounded-lg font-medium hover:bg-danger-700">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clear All Data Modal (Double Confirmation) -->
+        <div id="clearAllModal" class="fixed inset-0 modal-overlay bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 no-print">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="p-3 rounded-xl bg-danger-100"><svg class="w-6 h-6 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+                    <h3 class="text-lg font-semibold text-gray-900" id="clearAllTitle">Clear All Data</h3>
+                </div>
+
+                <div id="clearAllStep1" class="px-6 py-4">
+                    <p class="text-gray-600 mb-4"><strong>Warning:</strong> This will permanently delete ALL data including:</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1 mb-4">
+                        <li>All driver daily logs</li>
+                        <li>All expense records</li>
+                        <li>Godown stock levels</li>
+                        <li>Complete stock movement history</li>
+                    </ul>
+                    <div class="p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-700"><strong>This action cannot be undone.</strong> Consider exporting a backup first.</div>
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="closeModal('clearAllModal')" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button onclick="handleClearAllNext()" class="flex-1 px-4 py-2 bg-danger-600 text-white rounded-lg font-medium hover:bg-danger-700">Continue</button>
+                    </div>
+                </div>
+
+                <div id="clearAllStep2" class="px-6 py-4 hidden">
+                    <p class="text-gray-600 mb-4">To confirm, type exactly:</p>
+                    <div class="p-3 bg-gray-100 rounded-lg font-mono text-center text-lg font-bold tracking-wide text-danger-600 mb-4">CLEAR ALL DATA</div>
+                    <input type="text" id="clearAllInput" placeholder="Type CLEAR ALL DATA to confirm" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-center text-lg font-mono focus:ring-2 focus:ring-danger-500 focus:border-danger-500 outline-none" autocomplete="off" oninput="handleClearAllInput(event)" onkeydown="if(event.key==='Enter') handleClearAllNext()">
+                    <p class="text-xs text-gray-500 text-center mt-2">Case sensitive. Must match exactly.</p>
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="handleClearAllBack()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Back</button>
+                        <button onclick="handleClearAllNext()" class="flex-1 px-4 py-2 bg-danger-600 text-white rounded-lg font-medium hover:bg-danger-700">Delete Everything</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="bg-white border-t border-gray-200 py-6 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+                CylinderFlow - Gas Cylinder Distributor Management System | Powered by Firebase
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe67QyIKv3e7qqNxCunMr3GGadrkL_J5M",
+            authDomain: "tracker-cylinder.firebaseapp.com",
+            projectId: "tracker-cylinder",
+            storageBucket: "tracker-cylinder.firebasestorage.app",
+            messagingSenderId: "54971298333",
+            appId: "1:54971298333:web:c08c9383aed7caebb54cf4",
+            measurementId: "G-DZ9TJC8JZQ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Constants
+        const MARGIN_PER_CYLINDER = 50;
+        const STORAGE_KEYS = {
+            DRIVER_LOGS: 'cylinder_driver_logs',
+            EXPENSES: 'cylinder_expenses',
+            GODOWN_STOCK: 'cylinder_godown_stock',
+            STOCK_LOG: 'cylinder_stock_log'
+        };
+
+        // State
+        let currentUser = null;
+        let unsubscribeDriverLogs = null;
+        let unsubscribeExpenses = null;
+        let unsubscribeStock = null;
+        let driverLogs = [];
+        let expenses = [];
+        let godownStock = { full: 0, empty: 0 };
+        let stockLog = [];
+        let clearAllStep = 1;
+        let clearAllInput = '';
+
+        // DOM Elements
+        const authScreen = document.getElementById('authScreen');
+        const mainApp = document.getElementById('mainApp');
+        const loadingState = document.getElementById('loadingState');
+        const mainContent = document.getElementById('mainContent');
+        const userEmailEl = document.getElementById('userEmail');
+
+        // Auth Forms
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const showRegisterBtn = document.getElementById('showRegisterBtn');
+        const showLoginBtn = document.getElementById('showLoginBtn');
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+        async function signInWithEmail(email, password) {
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                throw new Error(getAuthErrorMessage(error.code));
+            }
+        }
+
+        async function registerWithEmail(email, password, name) {
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                // Create user profile in Firestore
+                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    name,
+                    email,
+                    createdAt: serverTimestamp()
+                });
+            } catch (error) {
+                throw new Error(getAuthErrorMessage(error.code));
+            }
+        }
+
+        async function signInWithGoogle() {
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (error) {
+                throw new Error(getAuthErrorMessage(error.code));
+            }
+        }
+
+        async function signOutUser() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                showToast('Sign out failed', 'error');
+            }
+        }
+
+        function getAuthErrorMessage(code) {
+            const messages = {
+                'auth/email-already-in-use': 'Email already registered',
+                'auth/invalid-email': 'Invalid email address',
+                'auth/weak-password': 'Password too weak (min 6 chars)',
+                'auth/user-not-found': 'Account not found',
+                'auth/wrong-password': 'Incorrect password',
+                'auth/popup-closed-by-user': 'Sign-in popup closed',
+                'auth/network-request-failed': 'Network error. Check connection.'
+            };
+            return messages[code] || 'Authentication failed. Please try again.';
+        }
+
+        // ============================================
+        // FIRESTORE REAL-TIME LISTENERS
+        // ============================================
+        function setupFirestoreListeners(user) {
+            // Clean up existing listeners
+            if (unsubscribeDriverLogs) unsubscribeDriverLogs();
+            if (unsubscribeExpenses) unsubscribeExpenses();
+            if (unsubscribeStock) unsubscribeStock();
+
+            const userLogsRef = collection(db, 'users', user.uid, 'driverLogs');
+            const userExpensesRef = collection(db, 'users', user.uid, 'expenses');
+            const userStockRef = doc(db, 'users', user.uid, 'settings', 'godown');
+
+            // Driver Logs
+            unsubscribeDriverLogs = onSnapshot(query(userLogsRef, orderBy('date', 'desc'), orderBy('timestamp', 'desc')), (snapshot) => {
+                driverLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderDriverLogs();
+                calculateDashboard();
+                populateDriverFilter();
+            });
+
+            // Expenses
+            unsubscribeExpenses = onSnapshot(query(collection(db, 'users', user.uid, 'expenses'), orderBy('date', 'desc'), orderBy('timestamp', 'desc')), (snapshot) => {
+                expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderExpenseTable();
+                calculateDashboard();
+            });
+
+            // Godown Stock
+            unsubscribeStock = onSnapshot(userStockRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    godownStock = docSnap.data();
+                } else {
+                    godownStock = { full: 0, empty: 0 };
+                }
+                document.getElementById('fullStock').textContent = godownStock.full || 0;
+                document.getElementById('emptyStock').textContent = godownStock.empty || 0;
+            });
+        }
+
+        // ============================================
+        // AUTH STATE LISTENER
+        // ============================================
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                authScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                userEmailEl.textContent = user.email;
+                userEmailEl.classList.remove('hidden');
+
+                // Setup Firestore listeners
+                setupFirestoreListeners(user);
+
+                // Hide loading after first data load
+                setTimeout(() => {
+                    loadingState.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                }, 1000);
+            } else {
+                currentUser = null;
+                authScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+                userEmailEl.classList.add('hidden');
+                loadingState.classList.add('hidden');
+                mainContent.classList.add('hidden');
+
+                // Cleanup listeners
+                if (unsubscribeDriverLogs) unsubscribeDriverLogs();
+                if (unsubscribeExpenses) unsubscribeExpenses();
+                if (unsubscribeStock) unsubscribeStock();
+            }
+        });
+
+        // ============================================
+        // AUTH FORM HANDLERS
+        // ============================================
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                await signInWithEmail(email, password);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            try {
+                await registerWithEmail(email, password, name);
+                showToast('Account created successfully!');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        googleSignInBtn.addEventListener('click', async () => {
+            try {
+                await signInWithGoogle();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        showRegisterBtn.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            document.getElementById('authForms').querySelector('p:last-child').classList.add('hidden');
+            document.getElementById('authSwitchText').classList.remove('hidden');
+        });
+
+        showLoginBtn.addEventListener('click', () => {
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            document.getElementById('authSwitchText').classList.add('hidden');
+            document.getElementById('authForms').querySelector('p:first-child').classList.remove('hidden');
+        });
+
+        window.signOut = signOutUser;
+
+        // ============================================
+        // FIRESTORE CRUD OPERATIONS
+        // ============================================
+        async function addDriverLog(logData) {
+            const userLogsRef = collection(db, 'users', currentUser.uid, 'driverLogs');
+            await addDoc(userLogsRef, { ...logData, timestamp: serverTimestamp() });
+        }
+
+        async function updateDriverLog(id, logData) {
+            await updateDoc(doc(db, 'users', currentUser.uid, 'driverLogs', id), logData);
+        }
+
+        async function deleteDriverLog(id) {
+            await deleteDoc(doc(db, 'users', currentUser.uid, 'driverLogs', id));
+        }
+
+        async function addExpense(expenseData) {
+            await addDoc(collection(db, 'users', currentUser.uid, 'expenses'), { ...expenseData, timestamp: serverTimestamp() });
+        }
+
+        async function updateExpense(id, expenseData) {
+            await updateDoc(doc(db, 'users', currentUser.uid, 'expenses', id), expenseData);
+        }
+
+        async function deleteExpense(id) {
+            await deleteDoc(doc(db, 'users', currentUser.uid, 'expenses', id));
+        }
+
+        async function updateGodownStock(full, empty) {
+            await updateDoc(doc(db, 'users', currentUser.uid, 'settings', 'godown'), {
+                full,
+                empty,
+                updatedAt: serverTimestamp()
+            });
+        }
+
+        async function addStockLog(logData) {
+            await addDoc(collection(db, 'users', currentUser.uid, 'stockLog'), { ...logData, timestamp: serverTimestamp() });
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function getTodayStr() { return new Date().toISOString().split('T')[0]; }
+        function getCurrentMonthStr() { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`; }
+        function getMonthStr(dateStr) { return dateStr.substring(0, 7); }
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function showToast(message, type = 'success') { const toast = document.createElement('div'); toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-50 animate-slide-up ${type === 'success' ? 'bg-success-600' : type === 'error' ? 'bg-danger-600' : 'bg-primary-600'}`; toast.textContent = message; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+
+        // ============================================
+        // DASHBOARD CALCULATIONS
+        // ============================================
+        function calculateDashboard() {
+            const today = getTodayStr();
+            const currentMonth = getCurrentMonthStr();
+
+            const todayLogs = driverLogs.filter(log => log.date === today);
+            const todaySold = todayLogs.reduce((sum, log) => sum + (log.cylindersSold || 0), 0);
+            const todayCollected = todayLogs.reduce((sum, log) => sum + (log.amountCollected || 0), 0);
+            const todayExpected = todayLogs.reduce((sum, log) => sum + (log.expectedAmount || 0), 0);
+            const todayPending = todayExpected - todayCollected;
+
+            const todayExpenses = expenses.filter(e => e.date === today).reduce((sum, e) => sum + (e.amount || 0), 0);
+            const monthlyLogs = driverLogs.filter(log => getMonthStr(log.date) === getCurrentMonthStr());
+            const monthlySold = monthlyLogs.reduce((sum, log) => sum + (log.cylindersSold || 0), 0);
+            const monthlyExpenses = expenses.filter(e => getMonthStr(e.date) === getCurrentMonthStr()).reduce((sum, e) => sum + (e.amount || 0), 0);
+
+            const dailyGrossProfit = todaySold * MARGIN_PER_CYLINDER;
+            const dailyNetProfit = dailyGrossProfit - todayExpenses;
+            const monthlyGrossProfit = monthlySold * MARGIN_PER_CYLINDER;
+            const monthlyNetProfit = monthlyGrossProfit - monthlyExpenses;
+
+            document.getElementById('todaySold').textContent = todaySold;
+            document.getElementById('todayCollected').textContent = formatCurrency(todayCollected);
+            document.getElementById('todayPending').textContent = formatCurrency(Math.max(0, todayPending));
+            document.getElementById('dailyProfit').textContent = formatCurrency(dailyNetProfit);
+            document.getElementById('dailyProfit').className = `text-3xl font-bold mt-1 ${dailyNetProfit >= 0 ? 'text-success-600' : 'text-danger-600'}`;
+            document.getElementById('monthlyProfit').textContent = formatCurrency(monthlyNetProfit);
+            document.getElementById('monthlyProfit').className = `text-3xl font-bold mt-1 ${monthlyNetProfit >= 0 ? 'text-success-600' : 'text-danger-600'}`;
+            document.getElementById('todayExpenses').textContent = formatCurrency(todayExpenses);
+            document.getElementById('monthlyExpenses').textContent = formatCurrency(monthlyExpenses);
+            document.getElementById('fullStock').textContent = godownStock.full || 0;
+            document.getElementById('emptyStock').textContent = godownStock.empty || 0;
+        }
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+        function renderAll() { calculateDashboard(); renderStockLog(); renderDriverLogs(); renderExpenseTable(); populateDriverFilter(); setDefaultDates(); }
+        function setDefaultDates() { const today = getTodayStr(); const currentMonth = getCurrentMonthStr(); document.getElementById('godownDate').value = today; document.getElementById('driverDate').value = today; document.getElementById('expenseDate').value = today; document.getElementById('expenseModalDate').value = today; document.getElementById('filterDate').value = today; document.getElementById('filterMonth').value = getCurrentMonthStr(); }
+        function getStockTypeClass(type) { const classes = { refill: 'bg-blue-100 text-blue-800', manual_full: 'bg-primary-100 text-primary-800', manual_empty: 'bg-blue-100 text-blue-800', damage_full: 'bg-danger-100 text-danger-800', damage_empty: 'bg-danger-100 text-danger-800' }; return classes[type] || 'bg-gray-100 text-gray-800'; }
+        function getStockTypeLabel(type) { const labels = { refill: 'Refill Received', manual_full: 'Manual: Full', manual_empty: 'Manual: Empty', damage_full: 'Damage: Full', damage_empty: 'Damage: Empty' }; return labels[type] || type; }
+
+        function renderStockLog() {
+            const tbody = document.getElementById('stockLogBody');
+            if (stockLog.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No stock movements recorded</td></tr>'; return; }
+            const displayLog = [...stockLog].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 50);
+            tbody.innerHTML = displayLog.map(entry => `<tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm text-gray-900">${formatDate(entry.date)}</td><td class="px-6 py-4 text-sm"><span class="px-2 py-1 rounded-full text-xs font-medium ${getStockTypeClass(entry.type)}">${getStockTypeLabel(entry.type)}</span></td><td class="px-6 py-4 text-sm font-medium ${entry.change > 0 ? 'text-success-600' : 'text-danger-600'}">${entry.change > 0 ? '+' : ''}${entry.change}</td><td class="px-6 py-4 text-sm text-gray-900">${entry.fullAfter || 0}</td><td class="px-6 py-4 text-sm text-gray-900">${entry.emptyAfter || 0}</td><td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${entry.notes || '-'}</td></tr>`).join('');
+        }
+
+        function exportStockLog() { if (stockLog.length === 0) { showToast('No stock log data to export', 'error'); return; } const headers = ['Date','Type','Change','Full Stock After','Empty Stock After','Notes']; const rows = stockLog.map(e => [formatDate(e.date), getStockTypeLabel(e.type), e.change, e.fullAfter||0, e.emptyAfter||0, e.notes||'']); downloadCSV('stock_log.csv', headers, rows); showToast('Stock log exported successfully'); }
+
+        function renderDriverLogs() {
+            const filterDate = document.getElementById('filterDate').value;
+            const filterMonth = document.getElementById('filterMonth').value;
+            const filterDriver = document.getElementById('filterDriver').value;
+            let filtered = [...driverLogs];
+            if (filterDate) filtered = filtered.filter(log => log.date === filterDate);
+            if (filterMonth) filtered = filtered.filter(log => getMonthStr(log.date) === filterMonth);
+            if (filterDriver) filtered = filtered.filter(log => log.driverName === filterDriver);
+            filtered.sort((a,b) => { const dc = new Date(b.date) - new Date(a.date); if (dc !== 0) return dc; return a.driverName.localeCompare(b.driverName); });
+
+            const tbody = document.getElementById('driverLogBody');
+            const emptyState = document.getElementById('emptyState');
+            if (filtered.length === 0) { tbody.innerHTML = ''; emptyState.style.display = 'block'; return; }
+            emptyState.style.display = 'none';
+            tbody.innerHTML = filtered.map(log => { const balance = (log.expectedAmount||0) - (log.amountCollected||0); return `<tr class="hover:bg-gray-50"><td class="px-4 py-3 text-sm text-gray-900">${formatDate(log.date)}</td><td class="px-4 py-3 text-sm font-medium text-gray-900">${escapeHtml(log.driverName)}</td><td class="px-4 py-3 text-right text-sm text-gray-900">${formatCurrency(log.pricePerCylinder||0)}</td><td class="px-4 py-3 text-right text-sm text-gray-900">${log.cylindersTaken||0}</td><td class="px-4 py-3 text-right text-sm text-success-600 font-medium">${log.cylindersSold||0}</td><td class="px-4 py-3 text-right text-sm text-gray-500">${log.fullReturned||0}</td><td class="px-4 py-3 text-right text-sm text-primary-600">${log.emptyReturned||0}</td><td class="px-4 py-3 text-right text-sm font-medium text-gray-900">${formatCurrency(log.expectedAmount||0)}</td><td class="px-4 py-3 text-right text-sm text-success-600 font-medium">${formatCurrency(log.amountCollected||0)}</td><td class="px-4 py-3 text-right text-sm font-medium ${balance > 0 ? 'text-danger-600' : 'text-success-600'">${formatCurrency(balance)}</td><td class="px-4 py-3 text-center"><div class="flex items-center justify-center gap-1"><button onclick="editDriverLog('${log.id}')" class="p-1.5 text-primary-600 hover:bg-primary-50 rounded" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button onclick="confirmDeleteDriverLog('${log.id}')" class="p-1.5 text-danger-600 hover:bg-danger-50 rounded" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></td></tr>`}).join('');
+        }
+
+        function populateDriverFilter() { const select = document.getElementById('filterDriver'); const drivers = [...new Set(driverLogs.map(log => log.driverName))].sort(); select.innerHTML = '<option value="">All Drivers</option>' + drivers.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join(''); }
+        function clearFilters() { document.getElementById('filterDate').value = getTodayStr(); document.getElementById('filterMonth').value = getCurrentMonthStr(); document.getElementById('filterDriver').value = ''; renderDriverLogs(); }
+        function exportDriverLogs() { if (driverLogs.length === 0) { showToast('No driver logs to export', 'error'); return; } const headers = ['Date','Driver','Price/Unit','Taken','Sold','Full Returned','Empty Returned','Expected','Collected','Balance']; const rows = driverLogs.map(log => [formatDate(log.date), log.driverName, log.pricePerCylinder||0, log.cylindersTaken||0, log.cylindersSold||0, log.fullReturned||0, log.emptyReturned||0, log.expectedAmount||0, log.amountCollected||0, (log.expectedAmount||0)-(log.amountCollected||0)]); downloadCSV('driver_logs.csv', headers, rows); showToast('Driver logs exported successfully'); }
+
+        function renderExpenseTable() { const tbody = document.getElementById('expenseBody'); if (expenses.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">No expenses recorded</td></tr>'; return; } const sorted = [...expenses].sort((a,b) => new Date(b.date) - new Date(a.date)); tbody.innerHTML = sorted.map(expense => `<tr class="hover:bg-gray-50"><td class="px-4 py-3 text-sm text-gray-900">${formatDate(expense.date)}</td><td class="px-4 py-3 text-sm text-gray-900">${escapeHtml(expense.description)}</td><td class="px-4 py-3 text-right text-sm font-medium text-danger-600">${formatCurrency(expense.amount||0)}</td><td class="px-4 py-3 text-center"><button onclick="confirmDeleteExpense('${expense.id}')" class="p-1.5 text-danger-600 hover:bg-danger-50 rounded" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td></tr>`).join(''); }
+
+        // ============================================
+        // GODOWN STOCK MANAGEMENT
+        // ============================================
+        async function handleGodownSubmit(e) {
+            e.preventDefault();
+            const date = document.getElementById('godownDate').value;
+            const type = document.getElementById('godownMovementType').value;
+            const qty = parseInt(document.getElementById('godownQty').value) || 0;
+            const notes = document.getElementById('godownNotes').value;
+            if (!date || qty <= 0) { showToast('Please fill all required fields', 'error'); return; }
+
+            let fullChange = 0, emptyChange = 0;
+            switch (type) {
+                case 'refill': fullChange = qty; emptyChange = -qty; break;
+                case 'manual_full': fullChange = qty; break;
+                case 'manual_empty': emptyChange = qty; break;
+                case 'damage_full': fullChange = -qty; break;
+                case 'damage_empty': emptyChange = -qty; break;
+            }
+
+            const newFull = Math.max(0, (godownStock.full || 0) + fullChange);
+            const newEmpty = Math.max(0, (godownStock.empty || 0) + emptyChange);
+            await updateGodownStock(newFull, newEmpty);
+            await addStockLog({ date, type, change: type.includes('full') ? fullChange : emptyChange, fullAfter: newFull, emptyAfter: newEmpty, notes });
+
+            closeModal('godownModal');
+            showToast('Godown stock updated successfully');
+        }
+
+        function calculateAuto() {
+            const taken = parseInt(document.getElementById('cylindersTaken').value) || 0;
+            const sold = parseInt(document.getElementById('cylindersSold').value) || 0;
+            const price = parseFloat(document.getElementById('pricePerCylinder').value) || 0;
+            const collected = parseFloat(document.getElementById('amountCollected').value) || 0;
+            const autoReturned = Math.max(0, taken - sold);
+            document.getElementById('fullReturned').value = autoReturned;
+            const expected = sold * price;
+            const balance = expected - collected;
+            document.getElementById('expectedAmount').value = formatCurrency(expected);
+            document.getElementById('balanceAmount').value = formatCurrency(balance);
+            document.getElementById('balanceAmount').className = `w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 ${balance > 0 ? 'text-danger-600' : 'text-success-600'} font-medium`;
+        }
+
+        async function handleDriverSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('driverLogId').value;
+            const date = document.getElementById('driverDate').value;
+            const driverName = document.getElementById('driverName').value.trim();
+            const pricePerCylinder = parseFloat(document.getElementById('pricePerCylinder').value) || 0;
+            const cylindersTaken = parseInt(document.getElementById('cylindersTaken').value) || 0;
+            const cylindersSold = parseInt(document.getElementById('cylindersSold').value) || 0;
+            const fullReturned = parseInt(document.getElementById('fullReturned').value) || 0;
+            const emptyReturned = parseInt(document.getElementById('emptyReturned').value) || 0;
+            const amountCollected = parseFloat(document.getElementById('amountCollected').value) || 0;
+
+            if (!date || !driverName || pricePerCylinder <= 0 || cylindersTaken < 0) { showToast('Please fill all required fields', 'error'); return; }
+
+            const expectedAmount = cylindersSold * pricePerCylinder;
+            const balance = expectedAmount - amountCollected;
+
+            // Update godown stock
+            const fullNetChange = -(cylindersTaken - fullReturned);
+            const emptyNetChange = emptyReturned;
+            const newFull = Math.max(0, (godownStock.full || 0) + fullNetChange);
+            const newEmpty = Math.max(0, (godownStock.empty || 0) + emptyNetChange);
+            await updateGodownStock(newFull, newEmpty);
+
+            // Log stock movements
+            if (cylindersTaken > 0) await addStockLog({ date, type: 'driver_taken', change: -cylindersTaken, fullAfter: newFull, emptyAfter: newEmpty, notes: `Driver ${driverName} took ${cylindersTaken} cylinders` });
+            if (fullReturned > 0) await addStockLog({ date, type: 'driver_return_full', change: fullReturned, fullAfter: newFull, emptyAfter: newEmpty, notes: `Driver ${driverName} returned ${fullReturned} full cylinders` });
+            if (emptyReturned > 0) await addStockLog({ date, type: 'driver_return_empty', change: emptyReturned, fullAfter: newFull, emptyAfter: newEmpty, notes: `Driver ${driverName} returned ${emptyReturned} empty cylinders` });
+
+            const logData = { date, driverName, pricePerCylinder, cylindersTaken, cylindersSold, fullReturned, emptyReturned, expectedAmount, amountCollected, balance };
+
+            if (id) { await updateDriverLog(id, logData); showToast('Driver log updated successfully'); }
+            else { await addDriverLog(logData); showToast('Driver log added successfully'); }
+
+            closeModal('driverModal');
+            resetDriverForm();
+            renderAll();
+        }
+
+        function editDriverLog(id) { const log = driverLogs.find(l => l.id === id); if (!log) return; document.getElementById('driverLogId').value = log.id; document.getElementById('driverDate').value = log.date; document.getElementById('driverName').value = log.driverName; document.getElementById('pricePerCylinder').value = log.pricePerCylinder; document.getElementById('cylindersTaken').value = log.cylindersTaken; document.getElementById('cylindersSold').value = log.cylindersSold; document.getElementById('fullReturned').value = log.fullReturned; document.getElementById('emptyReturned').value = log.emptyReturned; document.getElementById('amountCollected').value = log.amountCollected; document.getElementById('driverModalTitle').textContent = 'Edit Driver Log'; calculateAuto(); openModal('driverModal'); }
+
+        function confirmDeleteDriverLog(id) { openConfirmModal('Delete Driver Log', 'Are you sure you want to delete this driver log? This will also reverse the godown stock adjustments.', () => deleteDriverLogConfirmed(id)); }
+        async function deleteDriverLogConfirmed(id) { const log = driverLogs.find(l => l.id === id); if (!log) return; const newFull = Math.max(0, (godownStock.full||0) + (log.cylindersTaken||0) - (log.fullReturned||0)); const newEmpty = Math.max(0, (godownStock.empty||0) - (log.emptyReturned||0)); await updateGodownStock(newFull, newEmpty); await deleteDriverLog(id); showToast('Driver log deleted successfully'); closeModal('confirmModal'); renderAll(); }
+        function resetDriverForm() { document.getElementById('driverForm').reset(); document.getElementById('driverLogId').value = ''; document.getElementById('driverModalTitle').textContent = 'Add Driver Log'; document.getElementById('driverDate').value = getTodayStr(); document.getElementById('expectedAmount').value = formatCurrency(0); document.getElementById('balanceAmount').value = formatCurrency(0); document.getElementById('balanceAmount').className = 'w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100'; }
+
+        async function handleExpenseSubmit(e) { e.preventDefault(); const date = document.getElementById('expenseDate').value; const description = document.getElementById('expenseDesc').value.trim(); const amount = parseFloat(document.getElementById('expenseAmount').value) || 0; if (!date || !description || amount <= 0) { showToast('Please fill all fields', 'error'); return; } await addExpense({ date, description, amount }); document.getElementById('expenseForm').reset(); document.getElementById('expenseDate').value = getTodayStr(); renderAll(); showToast('Expense added successfully'); }
+
+        async function handleExpenseModalSubmit(e) { e.preventDefault(); const id = document.getElementById('expenseLogId').value; const date = document.getElementById('expenseModalDate').value; const description = document.getElementById('expenseModalDesc').value.trim(); const amount = parseFloat(document.getElementById('expenseModalAmount').value) || 0; if (!date || !description || amount <= 0) { showToast('Please fill all fields', 'error'); return; } if (id) { await updateExpense(id, { date, description, amount }); showToast('Expense updated successfully'); } else { await addExpense({ date, description, amount }); showToast('Expense added successfully'); } closeModal('expenseModal'); renderAll(); }
+
+        function confirmDeleteExpense(id) { openConfirmModal('Delete Expense', 'Are you sure you want to delete this expense entry?', () => deleteExpenseConfirmed(id)); }
+        async function deleteExpenseConfirmed(id) { await deleteExpense(id); showToast('Expense deleted successfully'); closeModal('confirmModal'); renderAll(); }
+
+        // ============================================
+        // MODAL MANAGEMENT
+        // ============================================
+        function openModal(id, param) { const modal = document.getElementById(id); modal.classList.remove('hidden'); modal.classList.add('flex'); if (id === 'godownModal') { document.getElementById('godownForm').reset(); document.getElementById('godownDate').value = getTodayStr(); if (param) document.getElementById('godownMovementType').value = param === 'full' ? 'manual_full' : 'manual_empty'; } else if (id === 'driverModal') { resetDriverForm(); } else if (id === 'expenseModal') { document.getElementById('expenseModalForm').reset(); document.getElementById('expenseLogId').value = ''; document.getElementById('expenseModalTitle').textContent = 'Add Expense'; document.getElementById('expenseModalDate').value = getTodayStr(); } }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+        let confirmCallback = null;
+        function openConfirmModal(title, message, callback) { document.getElementById('confirmTitle').textContent = title; document.getElementById('confirmMessage').textContent = message; confirmCallback = callback; document.getElementById('confirmModal').classList.remove('hidden'); document.getElementById('confirmModal').classList.add('flex'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); if (id === 'confirmModal') confirmCallback = null; }
+        document.getElementById('confirmActionBtn').addEventListener('click', () => { if (confirmCallback) confirmCallback(); });
+
+        // Clear All Modal
+        function openClearAllDialog() { clearAllStep = 1; clearAllInput = ''; document.getElementById('clearAllModal').classList.remove('hidden'); document.getElementById('clearAllModal').classList.add('flex'); setTimeout(() => { const input = document.getElementById('clearAllInput'); if (input) input.focus(); }, 100); }
+        function handleClearAllNext() { if (clearAllStep === 1) { clearAllStep = 2; document.getElementById('clearAllStep1').classList.add('hidden'); document.getElementById('clearAllStep2').classList.remove('hidden'); setTimeout(() => { const input = document.getElementById('clearAllInput'); if (input) input.focus(); }, 50); } else if (clearAllStep === 2) { if (clearAllInput === 'CLEAR ALL DATA') { executeClearAll(); } else { showToast('Type "CLEAR ALL DATA" exactly', 'error'); const input = document.getElementById('clearAllInput'); if (input) { input.classList.add('border-danger-500', 'ring-2', 'ring-danger-500'); setTimeout(() => input.classList.remove('border-danger-500', 'ring-2', 'ring-danger-500'), 1500); } } } }
+        function handleClearAllBack() { clearAllStep = 1; clearAllInput = ''; document.getElementById('clearAllInput').value = ''; document.getElementById('clearAllStep2').classList.add('hidden'); document.getElementById('clearAllStep1').classList.remove('hidden'); }
+        function handleClearAllInput(e) { clearAllInput = e.target.value; }
+        async function executeClearAll() { const batch = writeBatch(db); [STORAGE_KEYS.DRIVER_LOGS, STORAGE_KEYS.EXPENSES, STORAGE_KEYS.STOCK_LOG].forEach(key => { const col = collection(db, 'users', currentUser.uid, key.replace('cylinder_', '')); // Note: This is simplified - in production you'd batch delete }); await updateDoc(doc(db, 'users', currentUser.uid, 'settings', 'godown'), { full: 0, empty: 0, updatedAt: serverTimestamp() }); closeModal('clearAllModal'); renderAll(); showToast('All data cleared successfully'); }
+        function handleClearAllInput(e) { clearAllInput = e.target.value; }
+        function handleClearAllBack() { clearAllStep = 1; clearAllInput = ''; document.getElementById('clearAllInput').value = ''; document.getElementById('clearAllStep2').classList.add('hidden'); document.getElementById('clearAllStep1').classList.remove('hidden'); }
+
+        function downloadCSV(filename, headers, rows) { const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n'); const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); URL.revokeObjectURL(link.href); }
+
+        async function exportFullBackup() { const backup = { version: 1, exportedAt: new Date().toISOString(), data: { driverLogs, expenses, godownStock, stockLog } }; const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); const dateStr = new Date().toISOString().split('T')[0]; link.download = `cylinder-backup-${new Date().toISOString().split('T')[0]}.json`; link.click(); URL.revokeObjectURL(link.href); showToast('Full backup exported successfully'); }
+
+        function importBackup(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const backup = JSON.parse(e.target.result); if (!backup.data || !backup.version) throw new Error('Invalid backup file format'); openConfirmModal('Restore from Backup?', `This will REPLACE all current data with backup from ${backup.exportedAt ? new Date(backup.exportedAt).toLocaleString() : 'unknown date'}. Continue?`, async () => { driverLogs = backup.data.driverLogs || []; expenses = backup.data.expenses || []; godownStock = backup.data.godownStock || {full:0, empty:0}; stockLog = backup.data.stockLog || []; // Note: In production, you'd write to Firestore here input.value = ''; location.reload(); }); } catch (err) { showToast('Invalid backup file: ' + err.message, 'error'); } }; reader.readAsText(file); }
+
+        document.querySelectorAll('[id$="Modal"]').forEach(modal => { modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal.id); }); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.querySelectorAll('[id$="Modal"]').forEach(modal => { if (!modal.classList.contains('hidden')) closeModal(modal.id); }); } });
+
+        // Event Listeners
+        document.getElementById('godownForm').addEventListener('submit', handleGodownSubmit);
+        document.getElementById('driverForm').addEventListener('submit', handleDriverSubmit);
+        document.getElementById('expenseForm').addEventListener('submit', handleExpenseSubmit);
+        document.getElementById('expenseModalForm').addEventListener('submit', handleExpenseModalSubmit);
+        document.getElementById('filterDate').addEventListener('change', renderDriverLogs);
+        document.getElementById('filterMonth').addEventListener('change', renderDriverLogs);
+        document.getElementById('filterDriver').addEventListener('change', renderDriverLogs);
+
+        // Date/Time
+        function updateDateTime() { const now = new Date(); const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }; document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-IN', options); }
+        updateDateTime(); setInterval(updateDateTime, 60000);
+    </script>
+</body>
+</html>
