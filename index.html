@@ -713,16 +713,16 @@
             const userExpensesRef = collection(db, 'users', user.uid, 'expenses');
             const userStockRef = doc(db, 'users', user.uid, 'settings', 'godown');
 
-            // Driver Logs
-            unsubscribeDriverLogs = onSnapshot(query(userLogsRef, orderBy('date', 'desc'), orderBy('timestamp', 'desc')), (snapshot) => {
+            // Driver Logs - order by timestamp only to avoid composite index
+            unsubscribeDriverLogs = onSnapshot(query(userLogsRef, orderBy('timestamp', 'desc')), (snapshot) => {
                 driverLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderDriverLogs();
                 calculateDashboard();
                 populateDriverFilter();
             });
 
-            // Expenses
-            unsubscribeExpenses = onSnapshot(query(collection(db, 'users', user.uid, 'expenses'), orderBy('date', 'desc'), orderBy('timestamp', 'desc')), (snapshot) => {
+            // Expenses - order by timestamp only to avoid composite index
+            unsubscribeExpenses = onSnapshot(query(collection(db, 'users', user.uid, 'expenses'), orderBy('timestamp', 'desc')), (snapshot) => {
                 expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderExpenseTable();
                 calculateDashboard();
@@ -1135,6 +1135,7 @@
         window.handleClearAllNext = handleClearAllNext;
         window.handleClearAllBack = handleClearAllBack;
         window.handleClearAllInput = handleClearAllInput;
+        window.clearFilters = clearFilters;
         window.calculateAuto = calculateAuto;
         window.formatCurrency = formatCurrency;
         window.formatDate = formatDate;
