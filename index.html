@@ -112,6 +112,21 @@
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="hidden sm:block text-sm text-gray-500" id="currentDateTime"></div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="exportFullBackup()" class="px-3 py-1.5 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg font-medium transition-colors no-print" title="Export Backup">
+                                <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Backup
+                            </button>
+                            <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="importBackup(this)">
+                            <button onclick="document.getElementById('restoreFileInput').click()" class="px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg font-medium transition-colors no-print" title="Restore from Backup">
+                                <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Restore
+                            </button>
+                            <button onclick="openClearAllDialog()" class="px-3 py-1.5 text-sm text-danger-600 hover:text-danger-700 hover:bg-danger-50 rounded-lg font-medium transition-colors no-print" title="Clear All Data">
+                                <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Clear All
+                            </button>
+                        </div>
                         <div class="flex items-center space-x-4">
                             <span id="userEmail" class="text-sm text-gray-500 hidden"></span>
                             <button onclick="signOut()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg font-medium transition-colors no-print">Sign Out</button>
@@ -1097,6 +1112,30 @@
         // Date/Time
         function updateDateTime() { const now = new Date(); const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }; document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-IN', options); }
         updateDateTime(); setInterval(updateDateTime, 60000);
+
+        // Expose functions to global scope for HTML onclick handlers
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.signOut = signOutUser;
+        window.openConfirmModal = openConfirmModal;
+        window.exportFullBackup = exportFullBackup;
+        window.importBackup = importBackup;
+        window.openClearAllDialog = openClearAllDialog;
+        window.handleClearAllNext = handleClearAllNext;
+        window.handleClearAllBack = handleClearAllBack;
+        window.handleClearAllInput = handleClearAllInput;
+        window.editDriverLog = editDriverLog;
+        window.confirmDeleteDriverLog = confirmDeleteDriverLog;
+        window.confirmDeleteExpense = confirmDeleteExpense;
+        window.handleClearAllNext = handleClearAllNext;
+        window.handleClearAllBack = handleClearAllBack;
+        window.handleClearAllInput = handleClearAllInput;
+        window.calculateAuto = calculateAuto;
+        window.formatCurrency = formatCurrency;
+        window.formatDate = formatDate;
+        window.escapeHtml = escapeHtml;
+        window.showToast = showToast;
+
     </script>
 </body>
 </html>
