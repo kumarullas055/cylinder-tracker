@@ -1002,11 +1002,16 @@
 
             const newFull = Math.max(0, (godownStock.full || 0) + fullChange);
             const newEmpty = Math.max(0, (godownStock.empty || 0) + emptyChange);
-            await updateGodownStock(newFull, newEmpty);
-            await addStockLog({ date, type, change: type.includes('full') ? fullChange : emptyChange, fullAfter: newFull, emptyAfter: newEmpty, notes });
+            try {
+                await updateGodownStock(newFull, newEmpty);
+                await addStockLog({ date, type, change: type.includes('full') ? fullChange : emptyChange, fullAfter: newFull, emptyAfter: newEmpty, notes });
 
-            closeModal('godownModal');
-            showToast('Godown stock updated successfully');
+                closeModal('godownModal');
+                showToast('Godown stock updated successfully');
+            } catch (error) {
+                console.error('Godown update error:', error);
+                showToast('Error updating stock: ' + error.message, 'error');
+            }
         }
 
         function calculateAuto() {
