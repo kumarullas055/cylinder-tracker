@@ -1326,7 +1326,7 @@
             showToast('Morning session saved. Now enter evening details.');
         }
 
-        function saveEveningSession() {
+        async function saveEveningSession() {
             const id = document.getElementById('driverLogId').value;
             const date = document.getElementById('driverDate').value;
             const driverName = document.getElementById('driverName').value.trim();
@@ -1369,7 +1369,7 @@
             renderAll();
         }
 
-        function renderExpenseTable() { const tbody = document.getElementById('expenseBody'); if (expenses.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">No expenses recorded</td></tr>'; return; } const sorted = [...expenses].sort((a,b) => new Date(b.date) - new Date(a.date)); tbody.innerHTML = sorted.map(expense => '<tr class="hover:bg-gray-50"><td class="px-4 py-3 text-sm text-gray-900">' + formatDate(expense.date) + '</td><td class="px-4 py-3 text-sm text-gray-900">' + escapeHtml(expense.description) + '</td><td class="px-4 py-3 text-right text-sm font-medium text-danger-600">' + formatCurrency(expense.amount || 0) + '</td><td class="px-4 py-3 text-center"><button onclick="confirmDeleteExpense(\'' + expense.id + '\')" class="p-1.5 text-danger-600 hover:bg-danger-50 rounded" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td></tr>').join(''); }
+        
 
         // ============================================
         // GODOWN STOCK MANAGEMENT
@@ -1446,7 +1446,7 @@
             if (onlineSection) onlineSection.style.display = collectOnline?.checked ? 'block' : 'none';
         }
 
-        function calculateAuto() {
+        function calculateAutoPayment() {
             const taken = parseInt(document.getElementById('cylindersTaken').value) || 0;
             const sold = parseInt(document.getElementById('cylindersSold').value) || 0;
             const price = parseFloat(document.getElementById('pricePerCylinder').value) || 0;
@@ -1466,26 +1466,8 @@
         }
 
         // Payment Modal Toggle
-        function togglePaymentFields() {
-            const payCash = document.getElementById('payCash');
-            const payOnline = document.getElementById('payOnline');
-            const cashSection = document.getElementById('cashAmountSection');
-            const onlineSection = document.getElementById('onlineAmountSection');
-
-            if (cashSection) cashSection.style.display = payCash?.checked ? 'block' : 'none';
-            if (onlineSection) onlineSection.style.display = payOnline?.checked ? 'block' : 'none';
-        }
-
-        function toggleCollectionFields() {
-            const collectCash = document.getElementById('collectCash');
-            const collectOnline = document.getElementById('collectOnline');
-            const cashSection = document.getElementById('cashCollectionSection');
-            const onlineSection = document.getElementById('onlineCollectionSection');
-
-            if (cashSection) cashSection.style.display = collectCash?.checked ? 'block' : 'none';
-            if (onlineSection) onlineSection.style.display = collectOnline?.checked ? 'block' : 'none';
-        }
-
+        
+        
         async function handleDriverSubmit(e) {
             e.preventDefault();
             const id = document.getElementById('driverLogId').value;
@@ -1528,42 +1510,7 @@
         // ============================================
         // PAYMENT MODAL HANDLERS
         // ============================================
-        async function handlePaymentSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('paymentLogId').value;
-            const date = document.getElementById('paymentDate').value;
-            const driverId = document.getElementById('paymentDriver').value;
-            const cashAmount = parseFloat(document.getElementById('cashAmount').value) || 0;
-            const onlineAmount = parseFloat(document.getElementById('onlineAmount').value) || 0;
-            const upiId = document.getElementById('upiId').value.trim();
-            const onlineMode = document.getElementById('onlineMode').value;
-            const bankRef = document.getElementById('bankRef').value.trim();
-            const notes = document.getElementById('paymentNotes').value.trim();
-
-            const totalAmount = cashAmount + onlineAmount;
-            if (!date || !driverId || totalAmount <= 0) { showToast('Please fill all required fields', 'error'); return; }
-            if (onlineAmount > 0 && !upiId) { showToast('Please enter UPI ID / Transaction ID for online payment', 'error'); return; }
-
-            const paymentData = {
-                date,
-                driverId,
-                cashAmount,
-                onlineAmount,
-                totalAmount,
-                upiId: onlineAmount > 0 ? upiId : '',
-                onlineMode: onlineAmount > 0 ? document.getElementById('onlineMode').value : '',
-                bankRef,
-                notes,
-                timestamp: serverTimestamp()
-            };
-
-            if (id) { await updatePaymentLog(id, paymentData); showToast('Payment updated successfully'); }
-            else { await addPaymentLog(paymentData); showToast('Payment recorded successfully'); }
-
-            closeModal('paymentModal');
-            renderAll();
-        }
-
+        
         async function addPaymentLog(paymentData) {
             const userPaymentsRef = collection(db, 'users', currentUser.uid, 'payments');
             await addDoc(userPaymentsRef, paymentData);
